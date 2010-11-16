@@ -1,0 +1,25 @@
+#! /usr/bin/env ruby
+# Print a D-Bus pcap savefile in a minimally human readable format.
+# Author:  Martin Vidner, https://github.com/mvidner
+# License: http://creativecommons.org/licenses/MIT/
+
+require "pcap/savefile"
+require "dbus"
+require "pp"
+
+# http://article.gmane.org/gmane.network.tcpdump.devel/4788
+LINKTYPE_DBUS = 231
+
+io = ARGF
+header = Pcap::Savefile::GlobalHeader.from_io(io)
+if header.network != LINKTYPE_DBUS
+  puts "Can only parse DBus capture files."
+  exit 1
+end
+while not io.eof? do
+  packet = Pcap::Savefile::Packet.from_io(io)
+  payload = packet.data
+  msg, size = DBus::Message.new.unmarshall_buffer(payload)
+  print packet.time, " "
+  pp msg
+end

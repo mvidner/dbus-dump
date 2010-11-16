@@ -1,0 +1,61 @@
+#! /usr/bin/env ruby
+# Tap into dbus-daemon via strace and save the messages in a pcap savefile
+# Author:  Martin Vidner, https://github.com/mvidner
+# License: http://creativecommons.org/licenses/MIT/
+
+require "pcap/savefile"
+
+# strace -p `pgrep -f 'dbus-daemon --system'` -s 3000 -ttt -xx -o /root/tracer
+
+# parses an strace of dbus-daemon invoked with
+# -ttt (timestamped with seconds_since_epoch.usec)
+# -xx  (all strings in hex)
+# -s some_large_number (TODO deduce it from the output)
+# and yields the pairs [Time, raw D-Bus message as String]
+def parse_dbus_strace(io)
+    while not io.eof?
+      l = io.readline.chomp
+      case l
+      when /^(\d+)\.(\d+)\s+(writev?|read)\((\d*),/
+        sec = $1.to_i
+        usec = $2.to_i
+        rw = $3.upcase
+        conn = $4
+        s = ""
+        while l =~ /[^\"]*\"([^\"]*)\"(.*)/
+          ss = $1
+          l = $2
+          dehex = [ss.gsub '\x', ''].pack 'H*'
+          s += dehex
+        end
+        if s =~ /\A[lB]..\x01/  # FIXME misses a Hello tacked onto the BEGIN
+#          puts rw, conn, s
+          yield Time.at(sec, usec), s
+        end
+      end
+    end
+end
+
+# http://article.gmane.org/gmane.network.tcpdump.devel/4788
+LINKTYPE_DBUS = 231
+
+def convert(in_filename, out_filename)
+  File.open(out_filename, "w") do |outf|
+    header = Pcap::Savefile::GlobalHeader.new(LINKTYPE_DBUS)
+    header.snaplen = File.size in_filename # a totally off upper bound
+    header.write(outf)
+    File.open(in_filename) do |f|
+      parse_dbus_strace(f) do |time, raw_msg|
+        packet = Pcap::Savefile::Packet.new(raw_msg, time)
+        packet.write(outf)
+      end
+    end
+  end
+end
+
+if ARGV.size == 2
+  convert ARGV[0], ARGV[1]
+else
+  $stderr.puts "Usage: #{$0} foo.strace foo.pcap"
+  $stderr.puts "  reads a dbus-daemon strace (use -ttt -xx) and writes a pcap"
+end
