@@ -1,9 +1,10 @@
 dbus-dump
 =========
 
-dbus-dump is a tool to capture [D-Bus][1] messages
+[dbus-dump][0] is a tool to capture [D-Bus][1] messages
 in a [libpcap capture file][2].
 
+[0]: https://github.com/mvidner/dbus-dump
 [1]: http://www.freedesktop.org/wiki/Software/dbus
 [2]: http://wiki.wireshark.org/Development/LibpcapFileFormat
 
