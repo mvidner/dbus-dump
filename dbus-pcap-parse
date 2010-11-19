@@ -19,7 +19,11 @@ end
 while not io.eof? do
   packet = Pcap::Savefile::Packet.from_io(io)
   payload = packet.data
-  msg, size = DBus::Message.new.unmarshall_buffer(payload)
   print packet.time, " "
-  pp msg
+  begin
+    msg, size = DBus::Message.new.unmarshall_buffer(payload)
+    pp msg
+  rescue DBus::IncompleteBufferException
+    puts "<incomplete>"
+  end
 end
