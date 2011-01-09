@@ -7,6 +7,10 @@ require "pcap/savefile"
 
 # strace -p `pgrep -f 'dbus-daemon --system'` -s 3000 -ttt -xx -o /root/tracer
 
+def dehex(hex)
+  [hex.gsub '\x', ''].pack 'H*'
+end
+
 # parses an strace of dbus-daemon invoked with
 # -ttt (timestamped with seconds_since_epoch.usec)
 # -xx  (all strings in hex)
@@ -15,23 +19,26 @@ require "pcap/savefile"
 def parse_dbus_strace(io)
     while not io.eof?
       l = io.readline.chomp
+      s = ""
       case l
-      when /^(\d+)\.(\d+)\s+(writev?|read)\((\d*),/
+      when /^(\d+)\.(\d+)\s+(writev?|read|sendmsg)\((\d*),/
         sec = $1.to_i
         usec = $2.to_i
         rw = $3.upcase
         conn = $4
         s = ""
         while l =~ /[^\"]*\"([^\"]*)\"(.*)/
-          ss = $1
+          s += dehex($1)
           l = $2
-          dehex = [ss.gsub '\x', ''].pack 'H*'
-          s += dehex
         end
-        if s =~ /\A[lB]..\x01/  # FIXME misses a Hello tacked onto the BEGIN
-#          puts rw, conn, s
-          yield Time.at(sec, usec), s
-        end
+      when /^(\d+)\.(\d+)\s+recvmsg\([^\"]*\"([^\"]*)\".*\) = (\d+)$/
+        sec = $1.to_i
+        usec = $2.to_i
+        s = dehex($3)[0, $4.to_i]
+      end
+      if s =~ /\A[lB]..\x01/  # FIXME misses a Hello tacked onto the BEGIN
+        #          puts rw, conn, s
+        yield Time.at(sec, usec), s
       end
     end
 end
