@@ -3,7 +3,9 @@ task :default => :test
 
 desc "Run tests"
 task :test do
-  sh "./dbus-dump data/session.strace data/session-test.pcap && cmp data/session.pcap data/session-test.pcap && echo Test Passed"
+  sh "./dbus-dump data/session.strace data/session-test.pcap && cmp data/session.pcap data/session-test.pcap || echo Test Failed"
+  sh "./dbus-dump data/session-1.4.strace data/session-1.4-test.pcap && cmp data/session-1.4.pcap data/session-1.4-test.pcap || echo Test Failed"
+  puts "Test Passed"
 end
 
 desc "Build the documentation"
