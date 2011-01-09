@@ -3,6 +3,9 @@
 # Author:  Martin Vidner, https://github.com/mvidner
 # License: http://creativecommons.org/licenses/MIT/
 
+$LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
+require "rubygems"
+
 require "pcap/savefile"
 require "dbus"
 require "pp"

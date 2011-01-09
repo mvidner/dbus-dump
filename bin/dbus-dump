@@ -3,6 +3,8 @@
 # Author:  Martin Vidner, https://github.com/mvidner
 # License: http://creativecommons.org/licenses/MIT/
 
+$LOAD_PATH.unshift(File.expand_path("../../lib", __FILE__))
+
 require "pcap/savefile"
 
 # strace -p `pgrep -f 'dbus-daemon --system'` -s 3000 -ttt -xx -o /root/tracer
