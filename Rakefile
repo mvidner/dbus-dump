@@ -3,6 +3,7 @@ task :default => :test
 
 begin
   require "jeweler"
+  require "jeweler/rubygems_tasks"
   Jeweler::Tasks.new do |gem|
     # gem is a Gem::Specification, http://docs.rubygems.org/read/chapter/20
     gem.name = "dbus-dump"
@@ -14,12 +15,14 @@ relying on any eavesdropping (mis)configuration.}
     gem.email = "martin@vidner.net"
     gem.homepage = "http://github.com/mvidner/dbus-dump"
     gem.authors = ["Martin Vidner"]
+    gem.platform = Gem::Platform::RUBY
 
     gem.files = FileList["bin/dbus-*", "lib/**/*.rb",
                          "test/data/*.{strace,pcap}"]
 
     gem.add_dependency "ruby-dbus"
   end
+  Jeweler::RubygemsDotOrgTasks.new
 rescue LoadError
   puts "Jeweler not available. Install it with: gem install jeweler"
 end
