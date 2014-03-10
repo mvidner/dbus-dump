@@ -10,7 +10,7 @@ require "pcap/savefile"
 # strace -p `pgrep -f 'dbus-daemon --system'` -s 3000 -ttt -xx -o /root/tracer
 
 def dehex(hex)
-  [hex.gsub '\x', ''].pack 'H*'
+  [hex.gsub('\x', '')].pack 'H*'
 end
 
 # parses an strace of dbus-daemon invoked with
